@@ -51,7 +51,16 @@ public class AddProductController {
     @PostMapping("/showFormAddProduct")
     public String submitForm(@Valid @ModelAttribute("product") Product product, BindingResult bindingResult, Model theModel) {
         theModel.addAttribute("product", product);
-
+        ProductService repo2 = context.getBean(ProductServiceImpl.class);
+        Product existingProduct = repo2.findByName(product.getName());
+        System.out.println("ExistingPart= "+existingProduct);
+        if(existingProduct!=null){
+            String alertMessage = "A Product with this name already exists.";
+            String script = String.format("alert('%s');", alertMessage);
+            theModel.addAttribute("javascript", script); // Add the script to the model
+            bindingResult.rejectValue("name","error.product",alertMessage);
+            return "productForm";
+        }
         if(bindingResult.hasErrors()){
             ProductService productService = context.getBean(ProductServiceImpl.class);
             Product product2=productService.findById((int)product.getId());

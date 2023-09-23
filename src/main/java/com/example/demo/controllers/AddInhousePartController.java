@@ -39,14 +39,27 @@ public class AddInhousePartController{
     @PostMapping("/showFormAddInPart")
     public String submitForm(@Valid @ModelAttribute("inhousepart") InhousePart part, BindingResult theBindingResult, Model theModel){
         theModel.addAttribute("inhousepart",part);
+        PartService repo2 = context.getBean(PartServiceImpl.class);
+        Part existingPart = repo2.findByName(part.getName());
+        System.out.println("ExistingPart= "+existingPart);
+        if(existingPart!=null){
+            String alertMessage = "A part with this name already exists.";
+            String script = String.format("alert('%s');", alertMessage);
+            theModel.addAttribute("javascript", script); // Add the script to the model
+            theBindingResult.rejectValue("name","error.inhousepart",alertMessage);
+            return "InhousePartForm";
+        }
+
         if(theBindingResult.hasErrors()){
             return "InhousePartForm";
         }
         else{
         InhousePartService repo=context.getBean(InhousePartServiceImpl.class);
         InhousePart ip=repo.findById((int)part.getId());
-        if(ip!=null)part.setProducts(ip.getProducts());
-            repo.save(part);
+        if(ip!=null) {
+            part.setProducts(ip.getProducts());
+        }
+        repo.save(part);
 
         return "confirmationaddpart";}
     }
